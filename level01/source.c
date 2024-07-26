@@ -31,7 +31,7 @@ int main()
 	is_uncorrect = false;
 	puts("********* ADMIN LOGIN PROMPT *********");
 	printf("Enter Username: ");
-	fgets(g_user_name, 256, stdin);		// DANGEROUS, writing 256 in a 100 space
+	fgets(g_user_name, 256, stdin);		// DANGEROUS, writing 256 in a 100 memory space
 	is_uncorrect = verify_user_name();
 	if (is_uncorrect)
 	{
@@ -40,7 +40,7 @@ int main()
 	else
 	{
 		puts("Enter Password: ");
-		fgets(pass, 100, stdin);			// DANGEROUS, writing 100 in a 64 space
+		fgets(pass, 100, stdin);			// DANGEROUS, writing 100 in a 64 memory space
 		is_uncorrect = verify_user_pass(pass); // No matter the password, will print the incorrect password message
 		puts("nope, incorrect password...\n");
 	}
