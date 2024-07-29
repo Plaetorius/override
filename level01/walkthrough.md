@@ -1,6 +1,7 @@
 # Tools
 [Dogbolt - Decompiler Explorator](https://dogbolt.org/)
 [Cutter - Reverse Engineering Tool](https://cutter.re/)
+[GNU DeBugger - GDB](https://fr.wikipedia.org/wiki/GNU_Debugger)
 
 # Exploit
 The home of the level01 contians a binary, `level01`, that has an SUID bit set, and his owned by level02.
