@@ -7,7 +7,7 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 
-int main(int argc, const char **argv, const char **envp)
+int main()
 {
 	int stat_loc;
 	char input[128];

