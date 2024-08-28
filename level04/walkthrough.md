@@ -52,10 +52,10 @@ int ptrace(int request, pid_t pid, caddr_t addr, int data);
 **Description**
 Process tracing and debugging. Allows one process (the tracing process) to control another process (the traced process). Often, the traced process runs normally, but when it receives a signal, it stops. The tracing process is expected to notive this via `wait()` or the delivery of a SIGCHLD signal, examine the state of the stopped process, and cause it to terminate or continue as appropriate. All of that done through `ptrace()`.
 **Arguments**
-- `int request`: what operation is being perofrmed (rest of the arguments will depend on it, except one case) (see Linux man)
+- `int request`: what operation is being performed (rest of the arguments will depend on it, except one case) (see Linux man)
 	- `PTRACE_PEEKUSER`: read a word of data at iffset `addr` in the traced's USER area, that contains the register and other information about the process (see `<sys/user.h>`). The word is returned as the result of the `ptrace()` call. `data` is ignored.
 	- `PTRACE_TRACEME`: Indicates that this process is being tracked by its parent. A process shouldn't do that if its parent isn't expecting to trace it (`pid`, `addr` and `data` are ignored).
-	Only used by the traced process. The remaining operations are performed only by the tracing process. `pid` specifies the PID of the traced process. For operations other than PTRACE_ATTACH, PTRACE_SEIZE, PTRACE_INTERRUPT, and PTRACE_KILL, the traced process must be stopped.
+	Only used by the traced process. The remaining operations are performed only by the tracing process. `pid` specifies the PID of the traced process. For operations other than `PTRACE_ATTACH`, `PTRACE_SIZE`, `PTRACE_INTERRUPT`, and `PTRACE_KILL`, the traced process must be stopped.
 - `pid_t pid`: the PID of the traced process
 
 ### `kill()`
@@ -76,4 +76,13 @@ Send a signal to a process. Returns 0 on success. `pid` is to PID of the process
 int prctl(int op, ...);
 ```
 **Description**
-USed to manipulate various aspects of a thread or process. The first argument is the action, and the remainder or the arguments depends on that very first one.
+Used to manipulate various aspects of a thread or process. The first argument is the action, and the remainder or the arguments depends on that very first one.
+
+At first, I thought that I would need to exploit some forking mechanism.
+In fact, it's more about creating a shellcode that doesn't use `execve()`, as it's catched in the process and makes the process kill itself.
+
+So, what do we traditionally do when we get a shellcode? We `cat /homes/levelxx/.pass`
+What does cat do? It `open()`, `read()` and `write()`. No `execve()`.
+So, we want to craft a payload that opens `/homes/level05/.pass`, reads its content and writes it to us on the standard output.
+
+
