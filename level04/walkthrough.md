@@ -4,7 +4,7 @@
 [GNU DeBugger - GDB](https://fr.wikipedia.org/wiki/GNU_Debugger)
 
 # Exploit
-This exercice let's us explore the different threading mechanics.
+This exercice let's us explore the different threading mechanics and shellcode crafting.
 
 # Explanations
 We decompile the code using Dogbolt, and reverse engineer it.
