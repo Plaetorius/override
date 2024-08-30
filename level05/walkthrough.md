@@ -4,6 +4,7 @@
 [GNU DeBugger - GDB](https://fr.wikipedia.org/wiki/GNU_Debugger)
 
 # Exploit 
+Level05 requires a string format and GOT exploit. 
 
 # Explanation
 
