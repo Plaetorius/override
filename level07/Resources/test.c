@@ -4,14 +4,10 @@
 #include <unistd.h>
 #define HIBYTE(w)   ((unsigned char)(((unsigned int)(w) >> 8) & 0xFF))
 
-int clear_stdin()
+void clear_stdin(void)
 {
-  int result;
-
-  do
-    result = getchar();
-  while (result != 10 && result != 0xFF);
-  return result;
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
 
 int get_unum()
@@ -34,8 +30,10 @@ int store_number(int *nbs)
 	unum = get_unum();
 	printf(" Index: ");
 	index = get_unum();
+	printf("Unum: %u\nIndex: %u\n", unum, index);
 	if (index == 3 * (index / 3) /* index % 3 == 0 */ || HIBYTE(unum) == 183 /* 0xb7, 3070230528 */)
 	{
+		printf("Mod: %d / other: %d\n", index == 3 * (index / 3), HIBYTE(unum) == 183);
 		puts(" *** ERROR! ***");
 		puts("   This index is reserved for wil!");
 		puts(" *** ERROR! ***");
@@ -90,12 +88,12 @@ int main(int argc, const char **argv, const char **envp)
 		number = 1;
 		fgets(s, 20, stdin); // VULN s is only 4 bytes long
 		s[strlen(s) - 1] = 0;
-		if (!memcmp(s, "store", 5))
+		if (!memcmp(s, "store", 5) )
 		{
 			number = store_number((int*)nbs);
 			goto LABEL_13;
 		}
-		if (!memcmp(s, "read", 4))
+		if (!memcmp(s, "read", 4) )
 		{
 			number = read_number((int*)nbs);
 			goto LABEL_13;
